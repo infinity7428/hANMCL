@@ -13,10 +13,10 @@ This repo contains the official PyTorch implementation of our proposed methods H
 
 ## Comparison
 ### (1)
-Linux with Python >= 3.6\n
-PyTorch >= 1.6 & torchvision that matches the PyTorch version.\n
-CUDA 10.1, 10.2\n
-GCC >= 4.9\n
+<pre><code>Linux with Python >= 3.6
+PyTorch >= 1.6 & torchvision that matches the PyTorch version.
+CUDA 10.1, 10.2
+GCC >= 4.9</code></pre>
 
 ## Build hANIMAL
 
