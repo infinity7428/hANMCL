@@ -11,15 +11,20 @@ This repo contains the official PyTorch implementation of our proposed methods H
 ## Quick Start
 ### 1. Check Requirements
 
-## Comparison
+## Requirements
 ### (1)
-<pre><code>Linux with Python >= 3.6
-PyTorch >= 1.6 & torchvision that matches the PyTorch version.
-CUDA 10.1, 10.2
-GCC >= 4.9</code></pre>
+<pre><code>Linux with Python == 3.7.0
+PyTorch == 1.8.0+cu111
+Torchvision == 0.9.0+cu111
+CUDA 11.3
+GCC == 7.5.0</code></pre>
+
+## Getting Started
+<pre><code>https://github.com/tommy/</code></pre>
 
 ## Build hANIMAL
-
+<pre><code>cd lib
+python setup.py build develop</code></pre>
 
 ## Running
 <pre><code>python inference.py --eval --dataset val2014_novel --net hanmcl --r --load_dir models/result --checkepoch 16 --checkpoint 34467 --bs 1 --shot 3 --eval_dir result</code></pre>
