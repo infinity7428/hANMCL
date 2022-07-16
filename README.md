@@ -20,7 +20,7 @@ CUDA 11.3
 GCC == 7.5.0</code></pre>
 
 ## Getting Started
-<pre><code>https://github.com/tommy/](https://github.com/infinity7428/Hierarchical-Attention-Network-for-Few-Shot-Object-Detection-Via-Meta-Contrastive-Learning.git</code></pre>
+<pre><code>git clone https://github.com/infinity7428/hANMCL.git</code></pre>
 
 ## Build hANIMAL
 <pre><code>cd lib
