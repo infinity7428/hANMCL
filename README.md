@@ -29,3 +29,10 @@ python setup.py build develop</code></pre>
 ## Running
 <pre><code>python inference.py --eval --dataset val2014_novel --net hanmcl --r --load_dir models/result --checkepoch 16 --checkpoint 34467 --bs 1 --shot 3 --eval_dir result</code></pre>
 > 
+
+## Results on COCO dataset
+|Models|1shot|3shot|5shot|10shot|30shot|
+|-----------|--------|--------|--------|--------|--------|
+|테스트1|테스트2|테스트3|테스트3|테스트3|테스트3|
+|테스트1|테스트2|테스트3|테스트3|테스트3|테스트3|
+|테스트1|테스트2|테스트3|테스트3|테스트3|테스트3|
