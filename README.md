@@ -6,7 +6,7 @@
 This repo contains the official PyTorch implementation of our proposed methods Hierarchical Attention Network for Few-Shot Object Detection Via Meta-Contrastive Learning.
 
 ## Updates
-[2022/07/01] We release the official PyTorch implementation of hANIMAL. h is silent.
+[2022/07/01] We release the official PyTorch implementation of hANIMAL
 
 ## Quick Start
 ### 1. Check Requirements
