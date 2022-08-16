@@ -26,7 +26,9 @@ GCC == 7.5.0</code></pre>
 <pre><code>cd lib
 python setup.py build develop</code></pre>
 
-
+## Dataset
+<pre><code>MS-COCO
+</code></pre>
 
 ## Train
 <pre><code>python train.py --dataset coco_base --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3</code></pre>
