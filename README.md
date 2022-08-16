@@ -32,7 +32,7 @@ MS-COCO
 > data/coco/images/train2014
 > data/coco/annotations/coco60_train
 </code></pre>
-### Datasets for training json
+### 60 base classes for training(https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Object-Detection)
 
 
 ## Train
@@ -41,7 +41,7 @@ MS-COCO
 
 ## Inference
 <pre><code>python inference.py --eval --dataset val2014_novel --net hanmcl --r --load_dir models/hanmcl --checkepoch 12 --checkpoint 34467 --bs 1 --shot 3 --eval_dir result</code></pre>
-> 
+
 
 ## Results on COCO dataset(nAP)
 |Models|1shot|3shot|5shot|10shot|30shot|
