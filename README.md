@@ -49,6 +49,9 @@ MS-COCO
 ## Inference
 <pre><code>python inference.py --eval --dataset val2014_novel --net hanmcl --r --load_dir models/hanmcl --checkepoch 12 --checkpoint 34467 --bs 1 --shot 3 --eval_dir result</code></pre>
 
+## Pretrained Weights
+<pre><code>https://drive.google.com/drive/folders/1sPiadJ-Aw5N9uFaR1lTS2qlx3ABUudXh?usp=sharing
+</code></pre>
 
 ## Results on COCO dataset(nAP)
 |Models|1shot|3shot|5shot|10shot|30shot|
