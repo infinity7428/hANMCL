@@ -24,8 +24,7 @@ GCC == 7.5.0</code></pre>
 python setup.py build develop</code></pre>
 
 ## Dataset
-<pre><code>
-Pascal VOC(07,12)
+<pre><code>Pascal VOC(07,12)
 > data/voc/images/train2014
 > data/voc/annotations/voc_train
 
