@@ -9,9 +9,6 @@ This repo is built upon DAnA.
 ## Updates
 [2022/07/01] We release the official PyTorch implementation of hANMCL
 
-## Quick Start
-### 1. Check Requirements
-
 ## Requirements
 ### (1)
 <pre><code>Linux with Python == 3.7.0
@@ -39,7 +36,6 @@ Pascal VOC(07,12)
 
 ## Train
 <pre><code>python train.py --dataset coco_base --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3</code></pre>
-
 
 
 ## Running
