@@ -30,9 +30,7 @@ python setup.py build develop</code></pre>
 <pre><code>python inference.py --eval --dataset val2014_novel --net hanmcl --r --load_dir models/result --checkepoch 16 --checkpoint 34467 --bs 1 --shot 3 --eval_dir result</code></pre>
 > 
 
-## Results on COCO dataset(AP<sub>50</sub>)
+## Results on COCO dataset(nAP)
 |Models|1shot|3shot|5shot|10shot|30shot|
 |-----------|--------|--------|--------|--------|--------|
-|테스트1|테스트2|테스트3|테스트3|테스트3|테스트3|
-|테스트1|테스트2|테스트3|테스트3|테스트3|테스트3|
-|테스트1|테스트2|테스트3|테스트3|테스트3|테스트3|
+|Ours|12.9|14.4|14.5|22.4|25.0|
