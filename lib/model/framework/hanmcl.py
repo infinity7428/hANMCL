@@ -87,7 +87,6 @@ class _hANMCL(nn.Module):
         init.normal_(self.rcnn_unary_layer.weight, std=0.01)
         init.constant_(self.rcnn_unary_layer.bias, 0)
         
-        #RPN Q,K 만들기
         self.rpn_adapt_q1_layer = nn.Linear(dim_in, rpn_reduce_dim)
         init.normal_(self.rpn_adapt_q1_layer.weight, std=0.01)
         init.constant_(self.rpn_adapt_q1_layer.bias, 0)
@@ -117,7 +116,6 @@ class _hANMCL(nn.Module):
         init.constant_(self.rpn_adapt_k4_layer.bias, 0)
         
         
-        #HEAD Q,K 만들기
         self.rcnn_adapt_q1_layer = nn.Linear(dim_in, rcnn_reduce_dim)
         init.normal_(self.rcnn_adapt_q1_layer.weight, std=0.01)
         init.constant_(self.rcnn_adapt_q1_layer.bias, 0)
@@ -157,7 +155,7 @@ class _hANMCL(nn.Module):
             self.rcnn_transform_layer = nn.Linear(1024, self.rcnn_dim)
 
         self.output_score_layer = FFN(64* 49, dim_in)
-        self.rcnn_transform_layer2 = nn.Linear(2048, 256)
+        self.rcnn_transform_layer2 = nn.Linear(1024, 128)
         # positional encoding
         self.pos_encoding = pos_encoding
         if pos_encoding:
@@ -469,8 +467,11 @@ class _hANMCL(nn.Module):
             
             
         correlation_feat2 = correlation_feat # [n_roi, 49, 128]
-        correlation_feat2 = F.normalize(self.rcnn_transform_layer2(self.avgpool2(correlation_feat2.transpose(1,2).view(-1,2048,7,7)).view(-1,2048)),dim=1)
-        
+        correlation_feat2 = F.normalize(self.avgpool2(correlation_feat2.transpose(1,2).view(-1,2048,7,7)).view(-1,2048))
+        f1, f2 = torch.split(correlation_feat2, [1024, 1024], dim=1)
+        f1 = self.rcnn_transform_layer2(f1)
+        f2 = self.rcnn_transform_layer2(f2)
+        correlation_feat2 = torch.cat([f1,f2],dim=1)
         
         correlation_feat = self.rcnn_transform_layer(correlation_feat)  # [B*128, 49, rcnn_d]
         cls_score = self.output_score_layer(correlation_feat.view(n_roi, -1))
