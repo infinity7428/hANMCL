@@ -10,7 +10,6 @@ This repo is built upon DAnA.
 [2022/07/01] We release the official PyTorch implementation of hANMCL
 
 ## Requirements
-### (1)
 <pre><code>Linux with Python == 3.7.0
 PyTorch == 1.8.0+cu111
 Torchvision == 0.9.0+cu111
