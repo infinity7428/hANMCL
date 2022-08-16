@@ -33,7 +33,7 @@ MS-COCO
 > data/coco/images/train2014
 > data/coco/annotations/coco60_train
 </code></pre>
-### 60 base classes for training(https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Object-Detection)
+60 base classes for training(https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Object-Detection)
 
 
 ## Train
