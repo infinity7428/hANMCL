@@ -4,6 +4,7 @@
 
 ## Introduction
 This repo contains the official PyTorch implementation of our proposed methods Hierarchical Attention Network for Few-Shot Object Detection Via Meta-Contrastive Learning.
+This repo is built upon DAnA.
 
 ## Updates
 [2022/07/01] We release the official PyTorch implementation of hANMCL
