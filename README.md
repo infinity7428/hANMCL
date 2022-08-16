@@ -51,7 +51,7 @@ MS-COCO
 
 ## Pretrained Weights
 <pre><code>path: models/hanmcl/train/checkpoints/model_12_34467.pth
-link: https://drive.google.com/drive/folders/1sPiadJ-Aw5N9uFaR1lTS2qlx3ABUudXh?usp=sharing
+link: (https://drive.google.com/drive/folders/1sPiadJ-Aw5N9uFaR1lTS2qlx3ABUudXh?usp=sharing)
 </code></pre>
 
 ## Results on COCO dataset(nAP)
