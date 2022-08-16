@@ -23,7 +23,7 @@ GCC == 7.5.0</code></pre>
 <pre><code>cd lib
 python setup.py build develop</code></pre>
 
-## Dataset
+## Datasets
 <pre><code>Pascal VOC(07,12)
 > data/voc/images/train2014
 > data/voc/annotations/voc_train
@@ -32,6 +32,8 @@ MS-COCO
 > data/coco/images/train2014
 > data/coco/annotations/coco60_train
 </code></pre>
+
+###Datasets for training json
 
 ## Train
 <pre><code>python train.py --dataset coco_base --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3</code></pre>
