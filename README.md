@@ -28,6 +28,8 @@ python setup.py build develop</code></pre>
 
 ## Dataset
 <pre><code>MS-COCO
+> data/coco/images/train2014
+> data/coco/annotations/coco60_train
 </code></pre>
 
 ## Train
