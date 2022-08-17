@@ -19,7 +19,7 @@ GCC == 7.5.0</code></pre>
 ## Getting Started
 <pre><code>git clone https://github.com/infinity7428/hANMCL.git</code></pre>
 
-## Compile COCO API.
+## Compile COCO API
 <pre><code>$ cd lib
 $ git clone https://github.com/pdollar/coco.git 
 $ cd coco/PythonAPI
