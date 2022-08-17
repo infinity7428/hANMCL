@@ -7,7 +7,7 @@ This repo contains the official PyTorch implementation of our proposed methods H
 This repo is built upon DAnA.
 
 ## Updates
-[2022/07/01] We release the official PyTorch implementation of hANMCL
+[2022/07/01] We release the official PyTorch implementation of hANMCL.  
 Data loader and dataset(Pascal VOC) for fine-tuning will be uploaded.
 
 ## Requirements
