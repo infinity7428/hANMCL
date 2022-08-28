@@ -37,6 +37,7 @@ python setup.py build develop</code></pre>
 <pre><code>Pascal VOC(07,12)
 > data/voc/images/train2014
 > data/voc/annotations/voc_train
+https://drive.google.com/drive/folders/1K94ot7sBrChubmUA8HK0ym_7QT-ZG4su?usp=sharing
 
 MS-COCO
 > data/coco/images/train2014
