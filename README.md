@@ -8,7 +8,7 @@ This repo is built upon DAnA.
 
 ## Updates
 [2022/07/01] We release the official PyTorch implementation of hANMCL.  
-Data loader and dataset(Pascal VOC) for fine-tuning will be uploaded.
+[2022/09/21] Support PascalVOC and MSCOCO datasets.
 
 ## Requirements
 <pre><code>Linux with Python == 3.7.0
