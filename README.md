@@ -42,6 +42,11 @@ https://drive.google.com/drive/folders/1K94ot7sBrChubmUA8HK0ym_7QT-ZG4su?usp=sha
 MS-COCO
 > data/coco/images/train2014
 > data/coco/annotations/coco60_train
+
+60 base classes for training (https://drive.google.com/file/d/10mXvdpgSjFYML_9J-zMDLPuBYrSrG2ub/view?usp=sharing)
+20 novel classes for testing (https://drive.google.com/file/d/1FZJhC-Ob-IXTKf5heNeNAN00V8OUJXi2/view?usp=sharing)
+Reference : https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Object-Detection
+
 </code></pre>
 
 ## Train
