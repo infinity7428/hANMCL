@@ -11,6 +11,7 @@ This repo is built upon DAnA.
 ## Updates
 [2022/07/01] We release the official PyTorch implementation of hANMCL.  
 [2022/09/21] Support Pascal VOC and MS-COCO datasets.
+[2022/11/30] Support Multi-GPU training.
 
 ## Requirements
 <pre><code>Linux with Python == 3.7.0
@@ -26,9 +27,7 @@ GCC == 7.5.0</code></pre>
 <pre><code>$ cd lib
 $ git clone https://github.com/pdollar/coco.git 
 $ cd coco/PythonAPI
-$ make && make install
-put pycocotools under data/
-$ mv cocoapi/PythonAPI/pycocotools </code></pre>
+$ make && make install</code></pre>
 
 
 ## Build hANIMAL
