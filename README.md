@@ -1,5 +1,3 @@
-# The request will be uploaded soon.
-
 ## Hierarchical-Attention-Network-for-Few-Shot-Object-Detection-Via-Meta-Contrastive-Learning
 ![Picture1](https://user-images.githubusercontent.com/59869350/179343518-7ae94313-66e6-45a7-b5e2-f57a2c069827.png)
 
@@ -61,6 +59,9 @@ Reference : https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Obje
 ## Pretrained Weights
 path: models/hanmcl/train/checkpoints/model_12_34467.pth  
 link: https://drive.google.com/drive/folders/1sPiadJ-Aw5N9uFaR1lTS2qlx3ABUudXh?usp=sharing
+
+## Results on Pascal VOC dataset(AP_<sup>50)
+
 
 ## Results on COCO dataset(nAP)
 |Models|1shot|3shot|5shot|10shot|30shot|
