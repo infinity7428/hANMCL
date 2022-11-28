@@ -1,6 +1,6 @@
-#The update is expected to be completed before Dec.
-#The overall structure has been slightly changed.
-#To be uploaded along with the paper of the changed structure.
+# The update is expected to be completed before Dec.  
+# The overall structure has been slightly changed.  
+# To be uploaded along with the paper of the changed structure.  
 
 ## Hierarchical-Attention-Network-for-Few-Shot-Object-Detection-Via-Meta-Contrastive-Learning
 ![Picture1](https://user-images.githubusercontent.com/59869350/179343518-7ae94313-66e6-45a7-b5e2-f57a2c069827.png)
