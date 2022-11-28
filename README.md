@@ -10,7 +10,7 @@ This repo is built upon DAnA.
 
 ## Updates
 [2022/07/01] We release the official PyTorch implementation of hANMCL.  
-[2022/09/21] Support Pascal VOC and MS-COCO datasets.
+[2022/09/21] Support Pascal VOC and MS-COCO datasets.  
 [2022/11/30] Support Multi-GPU training.
 
 ## Requirements
