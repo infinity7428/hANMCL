@@ -60,7 +60,7 @@ Reference : https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Obje
 path: models/hanmcl/train/checkpoints/model_12_34467.pth  
 link: https://drive.google.com/drive/folders/1sPiadJ-Aw5N9uFaR1lTS2qlx3ABUudXh?usp=sharing
 
-## Results on Pascal VOC dataset(AP_{50})
+## Results on Pascal VOC dataset(AP<sub>{50})
 
 ## Results on COCO dataset(nAP)
 |Models|1shot|3shot|5shot|10shot|30shot|
