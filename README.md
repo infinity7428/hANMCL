@@ -69,6 +69,7 @@ link: https://drive.google.com/drive/folders/1sPiadJ-Aw5N9uFaR1lTS2qlx3ABUudXh?u
 <pre><code></code></pre>
 
 ## Results on COCO dataset(nAP)
-|Models|1shot|3shot|5shot|10shot|30shot|
-|-----------|--------|--------|--------|--------|--------|
-|Ours|12.9|14.4|14.5|22.4|25.0|
+
+## Result on Zero-shot Evaluation(nAP)
+
+## Results on Cross-Domain Few-Shot Object Detection(nAP)
