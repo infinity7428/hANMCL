@@ -69,7 +69,10 @@ link: https://drive.google.com/drive/folders/1sPiadJ-Aw5N9uFaR1lTS2qlx3ABUudXh?u
 <pre><code></code></pre>
 
 ## Results on COCO dataset(nAP)
+<pre><code></code></pre>
 
 ## Result on Zero-shot Evaluation(nAP)
+<pre><code></code></pre>
 
 ## Results on Cross-Domain Few-Shot Object Detection(nAP)
+<pre><code></code></pre>
