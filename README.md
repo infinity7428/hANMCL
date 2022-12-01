@@ -49,7 +49,14 @@ MS-COCO
 60 base classes for training (https://drive.google.com/file/d/10mXvdpgSjFYML_9J-zMDLPuBYrSrG2ub/view?usp=sharing)
 20 novel classes for testing (https://drive.google.com/file/d/1FZJhC-Ob-IXTKf5heNeNAN00V8OUJXi2/view?usp=sharing)
 Reference : https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Object-Detection
+</code></pre>
 
+## Support images
+<pre><code>
+Pascal VOC(07,12)
+>  
+MS-COCO
+>  
 </code></pre>
 
 ## Train
