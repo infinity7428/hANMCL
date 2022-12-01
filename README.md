@@ -52,8 +52,7 @@ Reference : https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Obje
 </code></pre>
 
 ## Support images
-<pre><code>
-Pascal VOC(07,12)
+<pre><code>Pascal VOC(07,12)
 >  
 MS-COCO
 >  
