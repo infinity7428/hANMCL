@@ -57,7 +57,13 @@ MS-COCO
 </code></pre>
 
 ## Train
-<pre><code>python train.py --dataset coco_base --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3</code></pre>
+<pre><code>python train.py --dataset coco_base --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3
+
+# train VOC
+python train.py --dataset voc{split num} --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 16 --disp_interval 20 --save_dir models/hANMCL --way 2 --shot 3
+python train.py --dataset voc1 --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 16 --disp_interval 20 --save_dir models/hANMCL --way 2 --shot 3
+
+</code></pre>
 
 ## for Multi-GPU Train
 <pre><code></code></pre>
