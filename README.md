@@ -57,16 +57,21 @@ MS-COCO
 </code></pre>
 
 ## Train
-<pre><code>python train.py --dataset coco_base --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3
+<pre><code>
+#train COCO (60 base category)
+python train.py --dataset coco_base --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3
 
-train VOC
-python train.py --dataset voc{SPLIT_ID (1, 2 or 3)} --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 16 --disp_interval 20 --save_dir models/hANMCL --way 2 --shot 3
-ex) python train.py --dataset voc1 --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 16 --disp_interval 20 --save_dir models/hANMCL --way 2 --shot 3
+train VOC (5 base category)
+python train.py --dataset voc{SPLIT_ID (1, 2 or 3)} --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 10 --disp_interval 20 --save_dir models/hANMCL --way 2 --shot 3
+ex) python train.py --dataset voc1 --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 10 --disp_interval 20 --save_dir models/hANMCL --way 2 --shot 3
+
+
 
 </code></pre>
 
 ## for Multi-GPU Train
-<pre><code></code></pre>
+<pre><code>python train.py --dataset {DATASET} --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3 --mGPUS
+</code></pre>
 
 ## Inference
 <pre><code>python inference.py --eval --dataset val2014_novel --net hanmcl --r --load_dir models/hanmcl --checkepoch 12 --checkpoint 34467 --bs 1 --shot 3 --eval_dir result</code></pre>
