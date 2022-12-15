@@ -38,6 +38,7 @@ python setup.py build develop</code></pre>
 > data/voc/images/train2014
 > data/voc/annotations/voc_train
 https://drive.google.com/drive/folders/1K94ot7sBrChubmUA8HK0ym_7QT-ZG4su?usp=sharing
+
 MS-COCO
 > data/coco/images/train2014
 > data/coco/annotations/coco60_train
@@ -48,9 +49,12 @@ Reference : https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Obje
 
 ## Support images
 <pre><code>Pascal VOC(07,12)
->  
+> supports/pascal
+
+
 MS-COCO
->  
+> supports/coco
+
 </code></pre>
 
 ## Train
@@ -65,6 +69,16 @@ ex) python train.py --dataset voc1 --flip --net hanmcl --lr 0.001 --lr_decay_ste
 <pre><code>python train.py --dataset {DATASET} --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3 --mGPUS
 </code></pre>
 
+
+## for fine-tune
+<pre><code>train COCO
+python train.py --dataset coco_ft --flip --net DAnA --lr 0.001 --lr_decay_step 12 --bs 2 --epochs 12 --disp_interval 20 --save_dir models/{SEED}_{SHOTS} --way 2 --shot {TRAIN SHOTS} --seed seed{SEED} --shots {SHOTS}shots --r
+
+train VOC
+python train.py --dataset coco_ft --flip --net DAnA --lr 0.001 --lr_decay_step 12 --bs 2 --epochs 12 --disp_interval 20 --save_dir models/{SEED}_{SHOTS} --way 2 --shot {TRAIN SHOTS} --seed seed{SEED} --shots {SHOTS}shots --r
+</code></pre>
+
+
 ## Inference
 <pre><code>test COCO (20 novel category)
 python inference.py --eval --dataset val2014_novel --net hanmcl --r --load_dir models/hANMCL --checkepoch 12 --checkpoint 34467 --bs 1 --shot 3 --eval_dir hanmcl
@@ -73,8 +87,8 @@ test COCO (60 base category)
 python inference.py --eval --dataset val2014_base --net hanmcl --r --load_dir models/hANMCL --checkepoch 12 --checkpoint 34467 --bs 1 --shot 3 --eval_dir hanmcl
 
 test VOC (5 novel category)
-python inference.py --eval --dataset voc_test{SPLIT_ID (1, 2 or 3)} --net hanmcl --r --load_dir models/hANMCL --checkepoch 12 --checkpoint 34467 --bs 1 --shot 3 --eval_dir hanmcl --sup_dir pascal/split{SPLIT_ID (1, 2 or 3)}/seed{SEED (1 to 10)}/{SHOTS (1 to 10)}shot_image_novel
-ex) python inference.py --eval --dataset voc_test1 --net hanmcl --r --load_dir models/hANMCL --checkepoch 12 --checkpoint 34467 --bs 1 --shot 3 --eval_dir hanmcl --sup_dir pascal/split1/seed1/10shot_image_novel
+python inference.py --eval --dataset voc_test{SPLIT_ID (1, 2 or 3)} --net hanmcl --r --load_dir models/hANMCL --checkepoch 10 --checkpoint ft --bs 1 --shot 3 --eval_dir hanmcl --sup_dir pascal/split{SPLIT_ID (1, 2 or 3)}/seed{SEED (1 to 10)}/{SHOTS (1 to 10)}shot_image_novel
+ex) python inference.py --eval --dataset voc_test1 --net hanmcl --r --load_dir models/hANMCL --checkepoch 10 --checkpoint ft --bs 1 --shot 3 --eval_dir hanmcl --sup_dir pascal/split1/seed1/10shot_image_novel
 </code></pre>
 
 ## Pretrained Weights
