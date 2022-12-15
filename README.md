@@ -51,11 +51,11 @@ Reference : https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Obje
 ## Support images
 <pre><code>Pascal VOC(07,12)
 > supports/pascal
-
+https://drive.google.com/file/d/13x06dwZn4focLMUvM73zv88f3FbIs4E_/view?usp=sharing
 
 MS-COCO
 > supports/coco
-
+https://drive.google.com/file/d/1X2CsQrZOjXnL0RGkXuKta7u0XFfQKEHT/view?usp=sharing
 </code></pre>
 
 ## Train
