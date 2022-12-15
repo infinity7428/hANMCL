@@ -9,7 +9,7 @@ import cv2
 from PIL import Image
 from torch.utils.data.sampler import Sampler
 from pathlib import Path
-from scipy.misc import imread
+from imageio import imread
 
 from model.utils.config import cfg
 from roi_data_layer.minibatch import get_minibatch, get_minibatch
