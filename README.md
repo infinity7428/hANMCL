@@ -48,7 +48,7 @@ MS-COCO
 Reference : https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Object-Detection
 </code></pre>
 
-## Support images
+## Support images and JSON
 <pre><code>Pascal VOC(07,12)
 > supports/pascal
 https://drive.google.com/file/d/13x06dwZn4focLMUvM73zv88f3FbIs4E_/view?usp=sharing
