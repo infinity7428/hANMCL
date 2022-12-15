@@ -16,21 +16,17 @@ from model.utils.net_utils import _smooth_l1_loss, _crop_pool_layer, _affine_gri
 from model.framework.resnet import resnet101
 import cv2
 
-class LKA(nn.Module):
+
+class HKA(nn.Module):
     def __init__(self, dim=1024):
         super().__init__()
         self.conv0 = nn.Conv2d(dim, dim, 5, padding=2, groups=dim)
-        self.conv_spatial = nn.Conv2d(dim, dim, 7, stride=1, padding=9, groups=dim, dilation=3)
-        self.conv1 = nn.Conv2d(dim, dim, 1)
 
 
     def forward(self, x):
         u = x.clone()        
         attn = self.conv0(x)
-        attn = self.conv_spatial(attn)
-        attn = self.conv1(attn)
         return u * attn
-
 
 class Attention(nn.Module):
     def __init__(self, d_model=1024):
@@ -38,21 +34,49 @@ class Attention(nn.Module):
 
         self.proj_1 = nn.Conv2d(d_model, d_model, 1)
         self.activation = nn.GELU()
-        self.spatial_gating_unit = LKA(d_model)
+        self.spatial_gating_unit = HKA(d_model)
         self.proj_2 = nn.Conv2d(d_model, d_model, 1)
 
     def forward(self, x):
         shorcut = x.clone()
         x = self.proj_1(x)
         x = self.activation(x)
-        x = self.spatial_gating_unit(x) #LKA
+        x = self.spatial_gating_unit(x)
         x = self.proj_2(x)
         x = x + shorcut
         return x
     
+class HKA2(nn.Module):
+    def __init__(self, dim=1024):
+        super().__init__()
+        self.conv_spatial = nn.Conv2d(dim, dim, 7, stride=1, padding=9, groups=dim, dilation=3)
+        self.conv1 = nn.Conv2d(dim, dim, 1)
+
+
+    def forward(self, x):
+        u = x.clone()        
+        attn = self.conv_spatial(x)
+        attn = self.conv1(attn)
+        return u * attn
+
+class Attention2(nn.Module):
+    def __init__(self, d_model=1024):
+        super().__init__()
+        self.proj_1 = nn.Conv2d(d_model, d_model, 1)
+        self.activation = nn.GELU()
+        self.spatial_gating_unit = HKA2(d_model)
+        self.proj_2 = nn.Conv2d(d_model, d_model, 1)
+
+    def forward(self, x):
+        shorcut = x.clone()
+        x = self.proj_1(x)
+        x = self.activation(x)
+        x = self.spatial_gating_unit(x)
+        x = self.proj_2(x)
+        x = x + shorcut
+        return x
     
 class _hANMCL(nn.Module):
-    """ Dual Awareness Attention Faster R-CNN """
     def __init__(self, classes, attention_type, rpn_reduce_dim, rcnn_reduce_dim, gamma, n_way=2, n_shot=5, pos_encoding=True):
         super(_hANMCL, self).__init__()
         self.classes = classes
@@ -61,7 +85,6 @@ class _hANMCL(nn.Module):
         self.n_shot = n_shot
         self.attention_type = attention_type
         self.channel_gamma = gamma
-        self.unary_gamma = 0.1
         self.rpn_reduce_dim = rpn_reduce_dim
         self.rcnn_reduce_dim = rcnn_reduce_dim
         # loss
@@ -77,9 +100,8 @@ class _hANMCL(nn.Module):
         self.avgpool2 = nn.AdaptiveAvgPool2d((1, 1))
         
         dim_in = self.pool_feat_dim
-        ################
         
-        #Unary
+
         self.rpn_unary_layer = nn.Linear(400, 1)
         init.normal_(self.rpn_unary_layer.weight, std=0.01)
         init.constant_(self.rpn_unary_layer.bias, 0)
@@ -108,13 +130,6 @@ class _hANMCL(nn.Module):
         init.normal_(self.rpn_adapt_k3_layer.weight, std=0.01)
         init.constant_(self.rpn_adapt_k3_layer.bias, 0)
         
-        self.rpn_adapt_q4_layer = nn.Linear(dim_in, rpn_reduce_dim)
-        init.normal_(self.rpn_adapt_q4_layer.weight, std=0.01)
-        init.constant_(self.rpn_adapt_q4_layer.bias, 0)
-        self.rpn_adapt_k4_layer = nn.Linear(dim_in, rpn_reduce_dim)
-        init.normal_(self.rpn_adapt_k4_layer.weight, std=0.01)
-        init.constant_(self.rpn_adapt_k4_layer.bias, 0)
-        
         
         self.rcnn_adapt_q1_layer = nn.Linear(dim_in, rcnn_reduce_dim)
         init.normal_(self.rcnn_adapt_q1_layer.weight, std=0.01)
@@ -138,14 +153,6 @@ class _hANMCL(nn.Module):
         init.normal_(self.rcnn_adapt_k3_layer.weight, std=0.01)
         init.constant_(self.rcnn_adapt_k3_layer.bias, 0)
         
-        self.rcnn_adapt_q4_layer = nn.Linear(dim_in, rcnn_reduce_dim)
-        init.normal_(self.rcnn_adapt_q4_layer.weight, std=0.01)
-        init.constant_(self.rcnn_adapt_q4_layer.bias, 0)
-        self.rcnn_adapt_k4_layer = nn.Linear(dim_in, rcnn_reduce_dim)
-        init.normal_(self.rcnn_adapt_k4_layer.weight, std=0.01)
-        init.constant_(self.rcnn_adapt_k4_layer.bias, 0)
-        
-
         self.RCNN_proposal_target = _ProposalTargetLayer(self.n_classes)
         if self.attention_type == 'concat':
             self.RCNN_rpn = _RPN(2048)
@@ -153,7 +160,7 @@ class _hANMCL(nn.Module):
         elif self.attention_type == 'product':
             self.RCNN_rpn = _RPN(1024)
             self.rcnn_transform_layer = nn.Linear(1024, self.rcnn_dim)
-
+        
         self.output_score_layer = FFN(64* 49, dim_in)
         self.rcnn_transform_layer2 = nn.Linear(1024, 128)
         # positional encoding
@@ -162,7 +169,8 @@ class _hANMCL(nn.Module):
             self.pos_encoding_layer = PositionalEncoding()
             self.rpn_pos_encoding_layer = PositionalEncoding(max_len=400)
         
-        self.attention = Attention() 
+        self.attention = Attention()
+        self.attention2 = Attention2()
 
     def forward(self, im_data, im_info, gt_boxes, num_boxes, support_ims, all_cls_gt_boxes=None):
         if self.training:
@@ -174,17 +182,14 @@ class _hANMCL(nn.Module):
         gt_boxes = gt_boxes.data
         num_boxes = num_boxes.data
 
-        # feature extraction
         base_feat = self.RCNN_base(im_data)
         base_feat = self.attention(base_feat)
-
+        base_feat = self.attention2(base_feat)
         if self.training:
-
-            support_ims = support_ims.view(-1, support_ims.size(2), support_ims.size(3), support_ims.size(4))#.permute(0,2,3,1)
-
-
+            support_ims = support_ims.view(-1, support_ims.size(2), support_ims.size(3), support_ims.size(4))
             support_feats = self.RCNN_base(support_ims)  # [B*2*shot, 1024, 20, 20]
             support_feats = self.attention(support_feats)
+            support_feats = self.attention2(support_feats)
             
 
             support_feats = support_feats.contiguous().view(-1, self.n_way*self.n_shot, support_feats.size(1), support_feats.size(2), support_feats.size(3))
@@ -201,6 +206,7 @@ class _hANMCL(nn.Module):
             support_ims = support_ims.view(-1, support_ims.size(2),  support_ims.size(3),  support_ims.size(4)) 
             support_feats = self.RCNN_base(support_ims)
             support_feats = self.attention(support_feats)
+            support_feats = self.attention2(support_feats)
             support_feats = support_feats.view(-1, self.n_shot, support_feats.size(1), support_feats.size(2), support_feats.size(3))
             
             pos_support_feat = support_feats[:, :self.n_shot, :, :, :]
@@ -210,14 +216,10 @@ class _hANMCL(nn.Module):
         batch_size = pos_support_feat.size(0)
         feat_h = base_feat.size(2)
         feat_w = base_feat.size(3)
-        #print('feat : ',feat_h, feat_w)
-        support_mat = pos_support_feat.transpose(0, 1).view(self.n_shot, batch_size, 1024, -1).transpose(2, 3)  # [shot, B, hw, 1024]
-        #print('support_mat : ',support_mat.shape)
-        query_mat = base_feat.view(batch_size, 1024, -1).transpose(1, 2)  # [B, hw, 1024]
-        #print('query_mat : ',query_mat.shape)
+        support_mat = pos_support_feat.transpose(0, 1).view(self.n_shot, batch_size, 1024, -1).transpose(2, 3)
+        query_mat = base_feat.view(batch_size, 1024, -1).transpose(1, 2)
         dense_support_feature = []
-        
-        #Q_matrix
+
         q1_matrix = self.rpn_adapt_q1_layer(query_mat)  # [B, hw, 256]
         q1_matrix = q1_matrix - q1_matrix.mean(1, keepdim=True)
         
@@ -227,15 +229,12 @@ class _hANMCL(nn.Module):
         q3_matrix = self.rpn_adapt_q3_layer(query_mat)  # [B, hw, 256]
         q3_matrix = q3_matrix - q3_matrix.mean(1, keepdim=True)
         
-        q4_matrix = self.rpn_adapt_q4_layer(query_mat)  # [B, hw, 256]
-        q4_matrix = q4_matrix - q4_matrix.mean(1, keepdim=True)
-        
         for i in range(self.n_shot):
             if self.pos_encoding:
                 single_s_mat = self.rpn_pos_encoding_layer(support_mat[i])  # [B, 400, 1024]
             else:
                 single_s_mat = support_mat[i]
-
+            
             k1_matrix = self.rpn_adapt_k1_layer(single_s_mat)  # [B, hw, 256]
             k1_matrix = k1_matrix - k1_matrix.mean(1, keepdim=True)
             k2_matrix = self.rpn_adapt_k2_layer(single_s_mat)  # [B, hw, 256]
@@ -243,33 +242,20 @@ class _hANMCL(nn.Module):
             
             k3_matrix = self.rpn_adapt_k3_layer(single_s_mat)  # [B, hw, 256]
             k3_matrix = k3_matrix - k3_matrix.mean(1, keepdim=True)
-            
-            k4_matrix = self.rpn_adapt_k4_layer(single_s_mat)  # [B, hw, 256]
-            k4_matrix = k4_matrix - k4_matrix.mean(1, keepdim=True)
 
-            support_adaptive_attention_weight1 = torch.bmm(q1_matrix, q2_matrix.transpose(1, 2)) / math.sqrt(self.rpn_reduce_dim)  # [B, hw, hw] 2166 * 2166 QQ Q
+            support_adaptive_attention_weight1 = torch.bmm(q1_matrix, q2_matrix.transpose(1, 2)) / math.sqrt(self.rpn_reduce_dim) 
             support_adaptive_attention_weight1 = F.softmax(support_adaptive_attention_weight1, dim=2)
             
-            
-            support_adaptive_attention_weight2 = torch.bmm(k1_matrix, k2_matrix.transpose(1, 2)) / math.sqrt(self.rpn_reduce_dim)  # [B, 400, 400] 2166 * 2166 SS S
+            support_adaptive_attention_weight2 = torch.bmm(k1_matrix, k2_matrix.transpose(1, 2)) / math.sqrt(self.rpn_reduce_dim) 
             support_adaptive_attention_weight2 = F.softmax(support_adaptive_attention_weight2, dim=2)
 
-            
-            support_adaptive_attention_weight3 = torch.bmm(q3_matrix, k3_matrix.transpose(1, 2)) / math.sqrt(self.rpn_reduce_dim)  # [B, hw, 400] 2166 * 400 400 1024 QSS
+            support_adaptive_attention_weight3 = torch.bmm(q3_matrix, k3_matrix.transpose(1, 2)) / math.sqrt(self.rpn_reduce_dim) 
             support_adaptive_attention_weight3 = F.softmax(support_adaptive_attention_weight3, dim=2)
             
-            
-            support_adaptive_attention_weight4 = torch.bmm(k4_matrix, q4_matrix.transpose(1, 2)) / math.sqrt(self.rpn_reduce_dim)  # [B, 400, hw] 400 * 2166 400 * 1024 SQQ 400 * 1024 * 1024* 2166
-            support_adaptive_attention_weight4 = F.softmax(support_adaptive_attention_weight4, dim=2)
-            
-            
-            #self-attention 2166*1024 QQQ
             support_adaptive_attention_feature1 = torch.bmm(support_adaptive_attention_weight1, query_mat)  # [B, hw, 1024]
 
-            #QSS + SS
             unary_term = self.rpn_unary_layer(support_adaptive_attention_weight2)  # [n_roi, 49, 1]
             unary_term = F.softmax(unary_term, dim=1)
-            #print('support_adaptive_attention_weight3 : ',support_adaptive_attention_weight3.shape, unary_term.shape)
             support_adaptive_attention_weight = support_adaptive_attention_weight3 + unary_term.transpose(1, 2)
             
             support_adaptive_attention_feature2 = torch.bmm(support_adaptive_attention_weight, single_s_mat)  # [B, hw, 1024]
@@ -279,23 +265,16 @@ class _hANMCL(nn.Module):
             dense_support_feature += [support_adaptive_attention_feature]
         
         dense_support_feature = torch.stack(dense_support_feature, 0).mean(0)  # [B, hw, 1024]
-        #print('dense_support_feature : ' ,dense_support_feature.shape)
         dense_support_feature = dense_support_feature.transpose(1, 2).contiguous().view(batch_size, 1024*2, feat_h, feat_w)
-        #print('dense_support_feature : ' ,dense_support_feature.shape)
+        
         if self.attention_type == 'concat':
-            correlation_feat = dense_support_feature #torch.cat([base_feat, dense_support_feature], 1)
-            #print('rpn correlation_feat : ',correlation_feat.shape)
+            correlation_feat = dense_support_feature
         elif self.attention_type == 'product':
             correlation_feat = base_feat * dense_support_feature
         
         rois, rpn_loss_cls, rpn_loss_bbox = self.RCNN_rpn(correlation_feat, im_info, gt_boxes, num_boxes)
 
-        # if it is training phrase, then use ground trubut bboxes for refining
         if self.training:
-            ## rois [B, rois_per_image(128), 5]
-                ### 5 is [batch_num, x1, y1, x2, y2]
-            ## rois_label [B, 128]
-            ## rois_target [B, 128, 4]
             roi_data = self.RCNN_proposal_target(rois, gt_boxes, num_boxes)
             rois, rois_label, rois_target, rois_inside_ws, rois_outside_ws = roi_data
             rois_label = Variable(rois_label.view(-1).long())
@@ -311,7 +290,6 @@ class _hANMCL(nn.Module):
             rpn_loss_bbox = 0
         rois = Variable(rois)
 
-        # do roi pooling based on predicted rois, pooled_feat = [B*128, 1024, 7, 7]
         if cfg.POOLING_MODE == 'align':
             pooled_feat = self.RCNN_roi_align(base_feat, rois.view(-1, 5))
         elif cfg.POOLING_MODE == 'pool':
@@ -324,21 +302,17 @@ class _hANMCL(nn.Module):
             cls_prob = torch.cat([cls_prob, neg_cls_prob], dim=0)
             cls_score_all = torch.cat([cls_score_all, neg_cls_score_all], dim=0)
             neg_rois_label = torch.zeros_like(rois_label)
-#             rois_label2 = rois_label.clone()
             rois_label = torch.cat([rois_label, neg_rois_label], dim=0)
             fg_inds = (rois_label == 1).nonzero().squeeze(-1)
             roi = torch.stack((correlation_feat2[fg_inds],neg_correlation_feat2[fg_inds]),dim=0)
-            roi_temp=torch.Tensor([1,0])
-            #correlation_feat2 = torch.cat([correlation_feat2, neg_correlation_feat2], dim=0)
+            roi = roi.permute(1,0,2)
+
         else:
             bbox_pred, cls_prob, cls_score_all, correlation_feat2 = self.rcnn_head(pooled_feat, pos_support_feat_pooled)
 
         # losses
         if self.training:
-            ## bounding box regression L1 loss
             RCNN_loss_bbox = _smooth_l1_loss(bbox_pred, rois_target, rois_inside_ws, rois_outside_ws)
-
-            ## classification loss, 2-way, 1:2:1
             fg_inds = (rois_label == 1).nonzero().squeeze(-1)
             bg_inds = (rois_label == 0).nonzero().squeeze(-1)
             cls_score_softmax = torch.nn.functional.softmax(cls_score_all, dim=1)
@@ -357,7 +331,7 @@ class _hANMCL(nn.Module):
             rois_label2=0
             roi=[]
             roi_temp=0
-        return rois, cls_prob, bbox_pred, rpn_loss_cls, rpn_loss_bbox, RCNN_loss_cls, RCNN_loss_bbox, rois_label, roi, roi_temp
+        return rois, cls_prob, bbox_pred, rpn_loss_cls, rpn_loss_bbox, RCNN_loss_cls, RCNN_loss_bbox, rois_label, roi#, roi_temp
 
     def _init_weights(self):
         def normal_init(m, mean, stddev, truncated=False):
@@ -374,7 +348,6 @@ class _hANMCL(nn.Module):
         normal_init(self.RCNN_rpn.RPN_Conv, 0, 0.01, cfg.TRAIN.TRUNCATED)
         normal_init(self.RCNN_rpn.RPN_cls_score, 0, 0.01, cfg.TRAIN.TRUNCATED)
         normal_init(self.RCNN_rpn.RPN_bbox_pred, 0, 0.01, cfg.TRAIN.TRUNCATED)
-        # normal_init(self.RCNN_cls_score, 0, 0.01, cfg.TRAIN.TRUNCATED)
         normal_init(self.RCNN_bbox_pred, 0, 0.001, cfg.TRAIN.TRUNCATED)
 
     def create_architecture(self):
@@ -393,6 +366,8 @@ class _hANMCL(nn.Module):
             # query_feat [128, c, 7, 7], target_feat [1, shot, c, 7, 7]
             query_feat = self.attention(query_feat)
             target_feat = self.attention(target_feat.squeeze(0))
+            query_feat = self.attention2(query_feat)
+            target_feat = self.attention2(target_feat)
             target_feat = target_feat.unsqueeze(0)
             target_feat = target_feat.view(1, self.n_shot, 1024, -1).transpose(2, 3)  # [1, shot, 49, c]
             target_feat = target_feat.repeat(query_feat.size(0), 1, 1, 1)  # [128, shot, 49, c]
@@ -404,16 +379,13 @@ class _hANMCL(nn.Module):
             query_mat += [query_feat]
         support_mat = torch.cat(support_mat, 0).transpose(0, 1)  # [shot, B*128, 49, c]
         query_mat = torch.cat(query_mat, 0)  # [B*128, 49, c]
-        #print('herehehehehehhe!@@@@@@@@@@@@@@@')
         dense_support_feature = []
         q1_matrix = self.rcnn_adapt_q1_layer(query_mat)
         q1_matrix = q1_matrix - q1_matrix.mean(1, keepdim=True)
         q2_matrix = self.rcnn_adapt_q2_layer(query_mat)
         q2_matrix = q2_matrix - q2_matrix.mean(1, keepdim=True)
         q3_matrix = self.rcnn_adapt_q3_layer(query_mat)
-        q3_matrix = q3_matrix - q3_matrix.mean(1, keepdim=True)
-        q4_matrix = self.rcnn_adapt_q4_layer(query_mat)
-        q4_matrix = q4_matrix - q4_matrix.mean(1, keepdim=True)     
+        q3_matrix = q3_matrix - q3_matrix.mean(1, keepdim=True)  
         
         for i in range(self.n_shot):
             single_s_mat = support_mat[i]
@@ -423,56 +395,44 @@ class _hANMCL(nn.Module):
             k2_matrix = k2_matrix - k2_matrix.mean(1, keepdim=True)
             k3_matrix = self.rcnn_adapt_k3_layer(single_s_mat)
             k3_matrix = k3_matrix - k3_matrix.mean(1, keepdim=True)
-            k4_matrix = self.rcnn_adapt_k4_layer(single_s_mat)
-            k4_matrix = k4_matrix - k4_matrix.mean(1, keepdim=True)
 
-            
-            support_adaptive_attention_weight1 = torch.bmm(q1_matrix, q2_matrix.transpose(1, 2)) / math.sqrt(self.rcnn_reduce_dim)   # [n_roi, 49, 49]
+            support_adaptive_attention_weight1 = torch.bmm(q1_matrix, q2_matrix.transpose(1, 2)) / math.sqrt(self.rcnn_reduce_dim) 
             support_adaptive_attention_weight1 = F.softmax(support_adaptive_attention_weight1, dim=2)
-            
-            
-            support_adaptive_attention_weight2 = torch.bmm(k1_matrix, k1_matrix.transpose(1, 2)) / math.sqrt(self.rcnn_reduce_dim)   # [n_roi, 49, 49]
-            support_adaptive_attention_weight2 = F.softmax(support_adaptive_attention_weight2, dim=2)            
-            
 
-            support_adaptive_attention_weight3 = torch.bmm(q3_matrix, k3_matrix.transpose(1, 2)) / math.sqrt(self.rcnn_reduce_dim)   # [n_roi, 49, 49]
+            
+            support_adaptive_attention_weight2 = torch.bmm(k1_matrix, k1_matrix.transpose(1, 2)) / math.sqrt(self.rcnn_reduce_dim) 
+            support_adaptive_attention_weight2 = F.softmax(support_adaptive_attention_weight2, dim=2)            
+
+            support_adaptive_attention_weight3 = torch.bmm(q3_matrix, k3_matrix.transpose(1, 2)) / math.sqrt(self.rcnn_reduce_dim) 
             support_adaptive_attention_weight3 = F.softmax(support_adaptive_attention_weight3, dim=2)
             
-            
-            support_adaptive_attention_weight4 = torch.bmm(k4_matrix, q4_matrix.transpose(1, 2)) / math.sqrt(self.rcnn_reduce_dim)   # [n_roi, 49, 49]
-            support_adaptive_attention_weight4 = F.softmax(support_adaptive_attention_weight4, dim=2)
-
-
             support_adaptive_attention_feature1 = torch.bmm(support_adaptive_attention_weight1, query_mat)  # [B, hw, 1024]
 
             unary_term = self.rcnn_unary_layer(support_adaptive_attention_weight2)  # [n_roi, 49, 1]
             unary_term = F.softmax(unary_term, dim=1)
             
             support_adaptive_attention_weight = support_adaptive_attention_weight3 + unary_term.transpose(1, 2)
-            
+
             support_adaptive_attention_feature2 = torch.bmm(support_adaptive_attention_weight, single_s_mat)  # [B, hw, 1024]
             
             support_adaptive_attention_feature = torch.cat([support_adaptive_attention_feature1,
                                                              support_adaptive_attention_feature2],dim=2)
             
-
             dense_support_feature += [support_adaptive_attention_feature]
         dense_support_feature = torch.stack(dense_support_feature, 0).mean(0)  # [n_roi, 49, 4096]
         
         if self.attention_type == 'concat':
             correlation_feat = dense_support_feature
         elif self.attention_type == 'product':
-            correlation_feat = query_mat * dense_support_feature
-
-            
+            correlation_feat = query_mat * dense_support_feature           
             
         correlation_feat2 = correlation_feat # [n_roi, 49, 128]
         correlation_feat2 = F.normalize(self.avgpool2(correlation_feat2.transpose(1,2).view(-1,2048,7,7)).view(-1,2048))
         f1, f2 = torch.split(correlation_feat2, [1024, 1024], dim=1)
         f1 = self.rcnn_transform_layer2(f1)
         f2 = self.rcnn_transform_layer2(f2)
-        correlation_feat2 = torch.cat([f1,f2],dim=1)
         
+        correlation_feat2 = torch.cat([f1,f2],dim=1)
         correlation_feat = self.rcnn_transform_layer(correlation_feat)  # [B*128, 49, rcnn_d]
         cls_score = self.output_score_layer(correlation_feat.view(n_roi, -1))
         cls_prob = F.softmax(cls_score, 1)  # [B*128, 1]
