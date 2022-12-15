@@ -38,11 +38,9 @@ python setup.py build develop</code></pre>
 > data/voc/images/train2014
 > data/voc/annotations/voc_train
 https://drive.google.com/drive/folders/1K94ot7sBrChubmUA8HK0ym_7QT-ZG4su?usp=sharing
-
 MS-COCO
 > data/coco/images/train2014
 > data/coco/annotations/coco60_train
-
 60 base classes for training (https://drive.google.com/file/d/10mXvdpgSjFYML_9J-zMDLPuBYrSrG2ub/view?usp=sharing)
 20 novel classes for testing (https://drive.google.com/file/d/1FZJhC-Ob-IXTKf5heNeNAN00V8OUJXi2/view?usp=sharing)
 Reference : https://github.com/Tung-I/Dual-awareness-Attention-for-Few-shot-Object-Detection
@@ -56,19 +54,15 @@ MS-COCO
 </code></pre>
 
 ## Train
-<pre><code>
-train COCO (60 base category)
+<pre><code>train COCO (60 base category)
 python train.py --dataset coco_base --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3
-
 train VOC (5 base category)
 python train.py --dataset voc{SPLIT_ID (1, 2 or 3)} --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 10 --disp_interval 20 --save_dir models/hANMCL --way 2 --shot 3
 ex) python train.py --dataset voc1 --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 10 --disp_interval 20 --save_dir models/hANMCL --way 2 --shot 3
 
 
-
-</code></pre>
-
 ## for Multi-GPU Train
+</code></pre>
 <pre><code>python train.py --dataset {DATASET} --flip --net hanmcl --lr 0.001 --lr_decay_step 12 --bs 4 --epochs 12 --disp_interval 20 --save_dir models/hanmcl --way 2 --shot 3 --mGPUS
 </code></pre>
 
