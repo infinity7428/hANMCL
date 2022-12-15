@@ -13,7 +13,6 @@ from model.utils.blob import prep_im_for_blob, im_list_to_blob
 from model.roi_layers import nms
 from model.utils.config import cfg
 from torch.autograd import Variable
-
 from model.framework.hanmcl import hANMCL
 from pycocotools.coco import COCO
 
@@ -21,8 +20,8 @@ from pycocotools.coco import COCO
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a Fast R-CNN network')
     # net and dataset
-    parser.add_argument('--dataset', dest='dataset', help='training dataset', default='coco_base', type=str)
-    parser.add_argument('--net', dest='net', default='hanmcl', type=str)
+    parser.add_argument('--dataset', dest='dataset', help='training dataset', default='pascal_voc', type=str)
+    parser.add_argument('--net', dest='net', help='vgg16, res101', default='DAnA', type=str)
     parser.add_argument('--flip', dest='use_flip', help='use flipped data or not', default=False, action='store_true')
     # optimizer
     parser.add_argument('--o', dest='optimizer', help='training optimizer', default="sgd", type=str)
@@ -33,7 +32,7 @@ def parse_args():
     parser.add_argument('--nw', dest='num_workers', help='number of worker to load data', default=2, type=int)
     parser.add_argument('--ls', dest='large_scale', help='whether use large imag scale', action='store_true')                      
     parser.add_argument('--mGPUs', dest='mGPUs', help='whether use multiple GPUs', action='store_true')
-    parser.add_argument('--bs', dest='batch_size', help='batch_size', default=4, type=int)
+    parser.add_argument('--bs', dest='batch_size', help='batch_size', default=16, type=int)
     parser.add_argument('--start_epoch', dest='start_epoch', help='starting epoch', default=1, type=int)
     parser.add_argument('--epochs', dest='max_epochs', help='number of epochs to train', default=12, type=int)
     parser.add_argument('--disp_interval', dest='disp_interval', help='number of iterations to display', default=100, type=int)
@@ -46,20 +45,26 @@ def parse_args():
     parser.add_argument('--eval_dir', dest='eval_dir', help='output directory of evaluation', default=None, type=str)
     # few shot
     parser.add_argument('--fs', dest='fewshot', help='few-shot setting', default=True, action='store_true')
-    parser.add_argument('--way', dest='way', help='num of support way', default=2, type=int)
-    parser.add_argument('--shot', dest='shot', help='num of support shot', default=3, type=int)
-    parser.add_argument('--sup_dir', dest='sup_dir', help='directory of support images', default='all', type=str) 
+    parser.add_argument('--way', dest='way', help='num of support way', default=1, type=int)
+    parser.add_argument('--shot', dest='shot', help='num of support shot', default=5, type=int)
+    parser.add_argument('--sup_dir', dest='sup_dir', help='directory of support images', default='coco/seed1/30shot_image_novel', type=str)
+
+    
     # load checkpoints
     parser.add_argument('--r', dest='resume', help='resume checkpoint or not', action='store_true', default=False)
     parser.add_argument('--load_dir', dest='load_dir', help='directory to load models', default="models", type=str)
     parser.add_argument('--checkepoch', dest='checkepoch', help='checkepoch to load model', default=1, type=int)
-    parser.add_argument('--checkpoint', dest='checkpoint', help='checkpoint to load model', default=0, type=int)
+    parser.add_argument('--checkpoint', dest='checkpoint', help='checkpoint to load model', default=0, type=str)
     # logger
     parser.add_argument('--dlog', dest='dlog', help='disable the logger', default=False, action='store_true')
     parser.add_argument('--imlog', dest='imlog', help='save im in the logger', default=False, action='store_true')
-
-
+    
+    # seed_ft
+    parser.add_argument('--sup', dest='ft_sup', help='directory of support images', default='seed1/1shot_image_novel', type=str)
+    parser.add_argument('--seed', dest='seed', help='num of support seed', default='seed1', type=str)
+    parser.add_argument('--shots', dest='shots', help='num of support shots', default='1shots', type=str)
     args = parser.parse_args()
+    
 
     # parse dataset
     if args.ascale == 3:
@@ -68,90 +73,119 @@ def parse_args():
         args.set_cfgs = ['ANCHOR_SCALES', '[4, 8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '50']
     else:
         raise Exception(f'invalid anchor scale {args.ascale}')
+        
+    #train VOC 07
     if args.dataset == "pascal_voc":
         args.imdb_name = "voc_2007_trainval"
         args.imdbval_name = "voc_2007_test"
         
+    #train VOC 07+12
     elif args.dataset == "pascal_voc_0712":
         args.imdb_name = "voc_2007_trainval+voc_2012_trainval"
         args.imdbval_name = "voc_2007_test"
         
+    #train COCO
     elif args.dataset == "coco_base":
         args.imdb_name = "coco_60_set1"
         
+    #train COCO fine-tune
     elif args.dataset == "coco_ft":
-        args.imdb_name = "coco_ft"
+        args.imdb_name = "coco_ft_{}_{}".format(args.seed, args.shots)
 
+    #train VOC fine-tune
+    elif args.dataset == "pascal_ft":
+        args.imdb_name = "pascal_ft_{}_{}".format(args.seed, args.shots)
+        
+        
+    #test COCO novel category (20 classes)
     elif args.dataset == "val2014_novel":
         args.imdbval_name = "coco_20_set1"
         
+    #test COCO base category (60 classes)
     elif args.dataset == "val2014_base":
         args.imdbval_name = "coco_20_set2"
+        
+    #train VOC split1, split2, split3    
+    elif args.dataset == "voc1":
+        args.imdb_name = "pascal_5_set1"
+    elif args.dataset == "voc2":
+        args.imdb_name = "pascal_5_set2"
+    elif args.dataset == "voc3":
+        args.imdb_name = "pascal_5_set3"
+        
+    #test VOC split1, split2, split3
+    elif args.dataset == "voc_test1":
+        args.imdbval_name = "pascal_5_set1"
+    elif args.dataset == "voc_test2":
+        args.imdbval_name = "pascal_5_set2"
+    elif args.dataset == "voc_test3":
+        args.imdbval_name = "pascal_5_set3"
 
     else:
         raise Exception(f'dataset {args.dataset} not defined')
     args.cfg_file = "cfgs/res101.yml"
     return args
 
-def get_model(name, pretrained=True, way=2, shot=3, classes=[]):
+def get_model(name, pretrained=True, use_BA_block=False, way=2, shot=3, classes=[]):
     if name == 'hanmcl':
         model = hANMCL(classes, 'concat', 256, 256, pretrained=pretrained, num_way=way, num_shot=shot)
     else:
         raise Exception(f"network {name} is not defined")
     model.create_architecture()
+
     return model
         
 
-# def create_annotation(nd_dir, cls_names, cls_im_inds, dump_path):
-#     clsname2ind = {'cube':1, 'can':2, 'box':3, 'bottle':4}
-#     data_categories = []
-#     for name in cls_names:   
-#         dic = {}
-#         dic['supercategory'] = 'None'
-#         dic['id'] = clsname2ind[name]
-#         dic['name'] = name
-#         data_categories.append(dic)
-#     data_images = []
-#     data_annotations = []
-#     for cls, inds in zip(cls_names, cls_im_inds):
-#         for ind in inds:
-#             im_file_name = str(ind).zfill(6) + '.jpg'
-#             dic = {}
-#             dic['license'] = 1
-#             dic['file_name'] = im_file_name
-#             dic['coco_url'] = 'http://farm3.staticflickr.com/2253/1755223462_fabbeb8dc3_z.jpg'
-#             dic['height'] = 256
-#             dic['width'] = 256
-#             dic['date_captured'] = '2013-11-15 13:55:22'
-#             dic['id'] = ind
-#             data_images.append(dic)
+def create_annotation(nd_dir, cls_names, cls_im_inds, dump_path):
+    clsname2ind = {'cube':1, 'can':2, 'box':3, 'bottle':4}
+    data_categories = []
+    for name in cls_names:   
+        dic = {}
+        dic['supercategory'] = 'None'
+        dic['id'] = clsname2ind[name]
+        dic['name'] = name
+        data_categories.append(dic)
+    data_images = []
+    data_annotations = []
+    for cls, inds in zip(cls_names, cls_im_inds):
+        for ind in inds:
+            im_file_name = str(ind).zfill(6) + '.jpg'
+            dic = {}
+            dic['license'] = 1
+            dic['file_name'] = im_file_name
+            dic['coco_url'] = 'http://farm3.staticflickr.com/2253/1755223462_fabbeb8dc3_z.jpg'
+            dic['height'] = 256
+            dic['width'] = 256
+            dic['date_captured'] = '2013-11-15 13:55:22'
+            dic['id'] = ind
+            data_images.append(dic)
             
-#             ann_file_name = str(ind).zfill(6) + '.npy'
-#             boxes = np.load(os.path.join(nd_dir, ann_file_name), allow_pickle=True)
-#             for j in range(boxes.shape[0]):
-#                 box = boxes[j]
-#                 dic = {}
-#                 dic['segmentation'] = [[184.05]]
-#                 dic['area'] = 1.28
-#                 dic['iscrowd'] = 0
-#                 dic['image_id'] = ind
-#                 dic['bbox'] = [int(box[0]), int(box[1]), int(box[2]) - int(box[0]), int(box[3]) - int(box[1])]
-#                 dic['category_id'] = clsname2ind[cls]
-#                 dic['id'] = int(str(ind)+str(j))
-#                 data_annotations.append(dic)
+            ann_file_name = str(ind).zfill(6) + '.npy'
+            boxes = np.load(os.path.join(nd_dir, ann_file_name), allow_pickle=True)
+            for j in range(boxes.shape[0]):
+                box = boxes[j]
+                dic = {}
+                dic['segmentation'] = [[184.05]]
+                dic['area'] = 1.28
+                dic['iscrowd'] = 0
+                dic['image_id'] = ind
+                dic['bbox'] = [int(box[0]), int(box[1]), int(box[2]) - int(box[0]), int(box[3]) - int(box[1])]
+                dic['category_id'] = clsname2ind[cls]
+                dic['id'] = int(str(ind)+str(j))
+                data_annotations.append(dic)
 
-#     coco_json_path = '/home/tony/datasets/coco/annotations/instances_minival2014.json'
-#     with open(coco_json_path, 'r') as f:
-#         data = json.load(f)
+    coco_json_path = '/home/tony/datasets/coco/annotations/instances_minival2014.json'
+    with open(coco_json_path, 'r') as f:
+        data = json.load(f)
    
-#     new_dict = {}
-#     new_dict['info'] = data['info']
-#     new_dict['images'] = data_images
-#     new_dict['licenses'] = data['licenses']
-#     new_dict['annotations'] = data_annotations
-#     new_dict['categories'] = data_categories
-#     with open(dump_path, 'w') as f:
-#         json.dump(new_dict, f)
+    new_dict = {}
+    new_dict['info'] = data['info']
+    new_dict['images'] = data_images
+    new_dict['licenses'] = data['licenses']
+    new_dict['annotations'] = data_annotations
+    new_dict['categories'] = data_categories
+    with open(dump_path, 'w') as f:
+        json.dump(new_dict, f)
 
 
 def generate_pseudo_label(output_dir, sp_dir, q_im_path, model, num_shot):

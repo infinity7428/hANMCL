@@ -12,13 +12,16 @@ from torch.autograd import Variable
 from tqdm import tqdm
 
 from roi_data_layer.roidb import combined_roidb
-from roi_data_layer.fs_loader import FewShotLoader, sampler
+# from roi_data_layer.fs_loader import FewShotLoader, sampler
 from model.utils.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
 from model.utils.net_utils import weights_normal_init, save_net, load_net, \
       adjust_learning_rate, save_checkpoint, clip_gradient
 from model.utils.fsod_logger import FSODLogger
 
 from utils import *
+
+from roi_data_layer.finetune_loader import FinetuneLoader, sampler
+
 from model.utils.metaclm import SupConLoss
 
     
@@ -51,9 +54,11 @@ if __name__ == '__main__':
     imdb, roidb, ratio_list, ratio_index = combined_roidb(args.imdb_name)
 
 
-    dataset = FewShotLoader(roidb, ratio_list, ratio_index, args.batch_size, \
-                            imdb.num_classes, training=True, num_way=args.way, num_shot=args.shot)
+#     dataset = FewShotLoader(roidb, ratio_list, ratio_index, args.batch_size, \
+#                             imdb.num_classes, training=True, num_way=args.way, num_shot=args.shot)
     
+    dataset = FinetuneLoader(imdb, roidb, ratio_list, ratio_index, args.batch_size, \
+                            imdb.num_classes, support_dir='supports/coco/{}/{}_image_novel'.format(args.seed,args.shots[:-1]), training=True, num_shot=args.shot)
     
     train_size = len(roidb)
     print('{:d} roidb entries'.format(len(roidb)))
@@ -93,8 +98,9 @@ if __name__ == '__main__':
 
     # load checkpoints 
     if args.resume:
-        load_dir = os.path.join(args.load_dir, "train/checkpoints")
-        load_name = os.path.join(load_dir, f'model_{args.checkepoch}_{args.checkpoint}.pth')
+        #load_dir = os.path.join(args.load_dir, "train/checkpoints")
+        #load_name = os.path.join(load_dir, f'model_{args.checkepoch}_{args.checkpoint}.pth')
+        load_name = 'model_12_34467.pth'
         checkpoint = torch.load(load_name)
         args.start_epoch = 0
         model.load_state_dict(checkpoint['model'])
@@ -185,7 +191,7 @@ if __name__ == '__main__':
         if not args.dlog:
             tb_logger.write(epoch, info, save_im=args.imlog)
 
-        save_name = os.path.join(output_dir, 'model_{}_{}.pth'.format(epoch, step))
+        save_name = os.path.join(output_dir, 'model_{}_ft.pth'.format(epoch))
         save_checkpoint({
             'epoch': epoch + 1,
             'model': model.module.state_dict() if args.mGPUs else model.state_dict(),
@@ -193,6 +199,5 @@ if __name__ == '__main__':
             'pooling_mode': cfg.POOLING_MODE,
         }, save_name)
         print('save model: {}'.format(save_name))
-
 
 
