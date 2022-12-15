@@ -33,7 +33,7 @@ if __name__ == '__main__':
     cfg.TRAIN.USE_FLIPPED = False
     imdb, roidb, ratio_list, ratio_index = combined_roidb(args.imdbval_name, False)
     CWD = os.getcwd()
-    support_dir = os.path.join(CWD, 'data/supports', args.sup_dir)
+    support_dir = os.path.join(CWD, 'supports', args.sup_dir)
 
     # load dir
     input_dir = os.path.join(args.load_dir, "train/checkpoints")
@@ -100,7 +100,7 @@ if __name__ == '__main__':
             rois, cls_prob, bbox_pred, \
             rpn_loss_cls, rpn_loss_box, \
             RCNN_loss_cls, RCNN_loss_bbox, \
-            rois_label, _, _ = model(im_data, im_info, gt_boxes, num_boxes, support_ims)
+            rois_label, _ = model(im_data, im_info, gt_boxes, num_boxes, support_ims)
         det_toc = time.time()
         detect_time = det_toc - det_tic
         misc_tic = time.time()
@@ -144,6 +144,28 @@ if __name__ == '__main__':
         misc_toc = time.time()
         nms_time = misc_toc - misc_tic
 
+        # if args.imlog:
+        #     origin_im = im_data[0].permute(1, 2, 0).contiguous().cpu().numpy()[:, :, ::-1]
+        #     origin_im = origin_im - origin_im.min()
+        #     origin_im /= origin_im.max()
+        #     gt_im = origin_im.copy()
+        #     pt_im = origin_im.copy()
+        #     np_gt_boxes = gt_boxes[0]
+        #     for n in range(np_gt_boxes.shape[0]):
+        #         box = np_gt_boxes[n].clone()
+        #         cv2.rectangle(gt_im, (box[0], box[1]), (box[2], box[3]), (0.1, 1, 0.1), 2)
+        #     plt.imshow(gt_im)
+        #     plt.show()
+        #     sup_im = support_ims[0][0].permute(1, 2, 0).contiguous().cpu().numpy()[:, :, ::-1]
+        #     sup_im = sup_im - sup_im.min()
+        #     sup_im /= sup_im.max()
+        #     plt.imshow(sup_im)
+        #     plt.show()
+        #     raise Exception(' ')
+
+            # raise Exception(' ')
+            # cv2.rectangle(im, (box[0], box[1]), (box[0] + box[2], box[1] + box[3]), (20, 255, 20), 2)
+            # tb_logger.write(i, gt, support_ims, predict, save_im=True)
 
     sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s   \r' \
             .format(i + 1, num_images, detect_time, nms_time))
