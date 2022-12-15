@@ -24,16 +24,16 @@ from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 from pycocotools import mask as COCOmask
 
-class coco_split(imdb):
+class pascal_split(imdb):
   def __init__(self, image_set, year):
-    imdb.__init__(self, 'coco_' + year + '_' + image_set)
+    imdb.__init__(self, 'pascal_' + year + '_' + image_set)
     # COCO specific config options
     self.config = {'use_salt': True,
                    'cleanup': True}
     # name, paths
     self._year = year
     self._image_set = image_set
-    self._data_path = osp.join(cfg.DATA_DIR, 'coco')
+    self._data_path = osp.join(cfg.DATA_DIR, 'pascal')
     # load COCO API, classes, class <-> id mappings
     self._COCO = COCO(self._get_ann_file())
     cats = self._COCO.loadCats(self._COCO.getCatIds())
@@ -66,15 +66,26 @@ class coco_split(imdb):
     self._gt_splits = ('train', 'val', 'minival')
 
   def _get_ann_file(self):
-    print(self._image_set)
+    print('herheeh : ',self._image_set)
     if self._image_set == '3way':
       return osp.join(self._data_path, 'annotations', 'coco20_3way', 'instances_' + self._year + '.json')
     elif self._image_set == '5way':
       return osp.join(self._data_path, 'annotations', 'coco20_5way', 'instances_' + self._year + '.json')
-    elif self._image_set == '20':
-      return osp.join(self._data_path, 'annotations', 'coco20_evaluate', 'instances_' + self._year + '.json')
-    elif self._image_set == '60':
-      return osp.join(self._data_path, 'annotations', 'coco60_train', 'instances_' + self._year + '.json')
+
+    elif self._year == 'set1' and self._image_set == '5':
+      return osp.join(self._data_path, 'annotations', 'pascal5_evaluate', 'test_split1.json')
+    elif self._year == 'set2' and self._image_set == '5':
+      return osp.join(self._data_path, 'annotations', 'pascal5_evaluate', 'test_split2.json')
+    elif self._year == 'set3' and self._image_set == '5':
+      return osp.join(self._data_path, 'annotations', 'pascal5_evaluate', 'test_split3.json')
+
+    elif self._year == 'set1' and self._image_set == '15':
+      return osp.join(self._data_path, 'annotations', 'pascal15_train', 'train_split1.json')
+    elif self._year == 'set2' and self._image_set == '15':
+      return osp.join(self._data_path, 'annotations', 'pascal15_train', 'train_split2.json')
+    elif self._year == 'set3' and self._image_set == '15':
+      return osp.join(self._data_path, 'annotations', 'pascal15_train', 'train_split3.json')
+
     elif 'shots' in self._image_set:
       return osp.join(self._data_path, 'annotations', 'ft', self._year, '{}_novel.json'.format(self._image_set[:-1]))
     else:
@@ -108,10 +119,12 @@ class coco_split(imdb):
     """
     Construct an image path from the image's "index" identifier.
     """
+    #im_ann = self._COCO.loadImgs(index)[0]
+    #filename = im_ann['file_name']
+    #print(filename)
+    
     # Example image path for index=119993:
     #   images/train2014/COCO_train2014_000000119993.jpg
-    
-    
     if self._image_set == '3way' or self._image_set == '5way':
       file_name = ('COCO_' + 'val2014' + '_' +
                   str(index).zfill(12) + '.jpg')
@@ -122,32 +135,16 @@ class coco_split(imdb):
                   str(index).zfill(12) + '.jpg')
       image_path = osp.join(self._data_path, 'images',
                             'val2014', file_name)
-    elif self._image_set == '60':
+    elif self._image_set == '1' or '2' or '3':
       im_ann = self._COCO.loadImgs(index)[0]
       file_name = im_ann['file_name']
-      image_path = osp.join(self._data_path, 'images', 'train2014', file_name)
-#       file_name = ('COCO_' + 'train2014' + '_' +
-#                   str(index).zfill(12) + '.jpg')
-#       image_path = osp.join(self._data_path, 'images',
-#                             'train2014', file_name)
-    elif self._image_set == 'vis':
-      im_ann = self._COCO.loadImgs(index)[0]
-      file_name = im_ann['file_name']
-      image_path = osp.join(self._data_path, 'images', 'train2014', file_name)
-    
-#       file_name = ('COCO_' + 'train2014' + '_' +
-#                   str(index).zfill(12) + '.jpg')
-#       image_path = osp.join(self._data_path, 'images',
-#                             'train2014', file_name)
-    elif 'shot' in self._image_set:
-      im_ann = self._COCO.loadImgs(index)[0]
-      file_name = im_ann['file_name']
-      image_path = osp.join(self._data_path, 'images', 'train2014', file_name)
-        
-#       file_name = ('COCO_' + 'train2014' + '_' +
-#                   str(index).zfill(12) + '.jpg')
-#       image_path = osp.join(self._data_path, 'images',
-#                             'train2014', file_name)
+      image_path = osp.join(self._data_path, 'images',
+                            'train2014', file_name)
+    elif self._image_set == 'shot':
+      file_name = ('COCO_' + 'train2014' + '_' +
+                  str(index).zfill(12) + '.jpg')
+      image_path = osp.join(self._data_path, 'images',
+                            'train2014', file_name)
     else:
       raise Exception(f'set not defined {self._image_set}')
     assert osp.exists(image_path), \
@@ -296,6 +293,7 @@ class coco_split(imdb):
     print('~~~~ Summary metrics ~~~~')
     coco_eval.summarize()
 
+
   def _do_detection_eval(self, res_file, output_dir):
     ann_type = 'bbox'
     coco_dt = self._COCO.loadRes(res_file)
@@ -305,6 +303,7 @@ class coco_split(imdb):
     coco_eval.accumulate()
     self._print_detection_eval_metrics(coco_eval)
     eval_file = osp.join(output_dir, 'detection_results.pkl')
+
     with open(eval_file, 'wb') as fid:
       pickle.dump(coco_eval, fid, pickle.HIGHEST_PROTOCOL)
     print('Wrote COCO eval results to: {}'.format(eval_file))
